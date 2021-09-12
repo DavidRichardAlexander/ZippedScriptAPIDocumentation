@@ -1,0 +1,323 @@
+swagger: "2.0"
+info:
+  description: "This is documentation to accompany the ZippedScript education and enrolment verification API.  You can find out more about ZippedScript and our services by visiting [https://zippedscript.com](https://zippedscript.com)."
+  version: "V1.2"
+  title: "ZippedScript API"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "info@zippedscript.com"
+#host: "127.0.0.1:5000"
+host: "zippedscriptapi.com"
+basePath: "/v1.2"
+tags:
+- name: "Basic Info"
+  description: "Endoints returning information such as available countries and schools"
+- name: "Images"
+  description: "Endoints related to images - specifically school logos"
+- name: "Account"
+  description: "Endoints related to account management"
+- name: "Degree Verification"
+  description: "Endoints related to verification of degrees"
+#- name: "Student Verification"
+#  description: "Endoints related to verification of student status"
+schemes:
+- "https"
+- "http"
+paths:
+  /basic_info/countries:
+    get:
+      tags:
+      - "Basic Info"
+      summary: "Return a list of available countries"
+      description: "Endpoint returns a list of currently available countries"
+      operationId: "getcountries"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Countries"
+  /basic_info/country/{country_code}:
+    get:
+      tags:
+      - "Basic Info"
+      summary: "Return a list of available schools"
+      description: "Endpoint returns a list of available schools according to the country_code provided"
+      operationId: "getschools"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "country_code"
+        in: "path"
+        description: "2 Letter Country Code in ISO 3166-1 Format"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Schools"
+        "201":
+          description: "Country not found"
+  /images/{country_code}/{school_code}:
+    get:
+      tags:
+      - "Images"
+      summary: "Return a school's logo"
+      description: "Return a logo in .png format corresponding with the country_code and school_code provided"
+      operationId: "getschoollogo"
+      produces:
+      - ".png"
+      parameters:
+      - name: "country_code"
+        in: "path"
+        description: "2 Letter Country Code in ISO 3166-1 Format"
+        required: true
+        type: "string"
+      - name: "school_code"
+        in: "path"
+        description: "ZippedScript School Code/Identifier"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: file
+            format: .png
+  /account/get_access_token:
+    post:
+      tags:
+      - "Account"
+      summary: "Return a valid JWT"
+      description: "Endpoint returns a valid JWT bearer token"
+      operationId: "getaccesstoken"
+      consumes:
+      - "application/json"
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "username"
+        in: "query"
+        description: "The user name for login"
+        required: true
+        type: "string"
+      - name: "password"
+        in: "query"
+        description: "The password for login in clear text"
+        required: true
+        type: "string"
+      responses:
+        '200':
+          description: "Success"
+          schema:
+            type: object
+            properties:
+              access_token:
+                type: string
+        "201":
+          description: "Request must be of type 'multipart/form-data' or 'application/json' -- or -- Missing parameters"
+        "401":
+          description: "Bad username or password"
+        "503":
+          description: "Could not connect to database"
+  /account/reset_password:
+    post:
+      tags:
+      - "Account"
+      summary: "Reset a password"
+      description: "Endpoint allows partners to reset their account password"
+      operationId: "resetaccountpassword"
+      consumes:
+      - "application/json"
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "username"
+        in: "query"
+        description: "The user name for login"
+        required: true
+        type: "string"
+      - name: "password"
+        in: "query"
+        description: "The password for login in clear text"
+        required: true
+        type: "string"
+      responses:
+        '200':
+          description: "Password successfully reset"
+        "201":
+          description: "Request must be of type 'multipart/form-data' or 'application/json' -- or -- Missing parameters"
+        "401":
+          description: "Bad username or password"
+        "503":
+          description: "Could not connect to database"
+  /account/is_token_valid:
+    post:
+      tags:
+      - "Account"
+      summary: "Validate bearer token"
+      description: "Endpoint allows partners to validate the proper function of their bearer token"
+      operationId: "istokenvalid"
+      produces:
+      - "application/json"
+      responses:
+        '200':
+          description: "Token verification success"
+        "401":
+          description: "Missing Authorization Header -- or -- Token has expired"
+      security:
+      - Bearer: []
+  /degree_verification/new:
+    post:
+      tags:
+      - "Degree Verification"
+      summary: "Validate Reset a password"
+      description: "Endpoint allows partners to reset their account password"
+      operationId: "degreeverificationnew"
+      consumes:
+      - "application/json"
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "username"
+        in: "query"
+        description: "The user name for login"
+        required: true
+        type: "string"
+      - name: "password"
+        in: "query"
+        description: "The password for login in clear text"
+        required: true
+        type: "string"
+      responses:
+        '200':
+          description: "Success"
+          schema:
+            type: object
+            properties:
+              record_id:
+                type: string
+                description: "ZippedScript Degree Verification Record Identifier"
+        "201":
+          description: "Request must be of type 'multipart/form-data' or 'application/json' -- or -- Missing parameters -- or -- Not a valid country code -- or -- Not a valid school code"
+        "401":
+          description: "Bad username or password"
+        "503":
+          description: "Could not connect to database"
+      security:
+      - Bearer: []
+  /degree_verification/result:
+    post:
+      tags:
+      - "Degree Verification"
+      summary: "Validate Reset a password"
+      description: "Endpoint allows partners to reset their account password"
+      operationId: "degreeverificationresult"
+      consumes:
+      - "application/json"
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "record_id"
+        in: "query"
+        description: "The record_id associated with the verification result"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/DegreeVerification"
+        "201":
+          description: "Request must be of type 'multipart/form-data' or 'application/json' -- or -- Missing parameters"
+        "503":
+          description: "Could not connect to database"
+      security:
+      - Bearer: []
+
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+definitions:
+  ApiResponse:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+      msg:
+        type: "string"
+      data:
+        type: "object"
+  Countries:
+    type: "object"
+    properties:
+      Code:
+        type: "string"
+        description: "2 Letter Country Code (ISO 3166-1 Format)"
+      Name:
+        type: "string"
+        description: "Country Name"
+  Schools:
+    type: "object"
+    properties:
+      Code:
+        type: "string"
+        description: "ZippedScript School Code/Identifier"
+      Name:
+        type: "string"
+        description: "School Name"
+      System:
+        type: "string"
+        description: "Name of the School's Validation System"
+      U:
+        type: "string"
+        description: "Username Descriptor Used by the School (e.g., MyUniversityID)"
+      P:
+        type: "string"
+        description: "Password Descriptor Used by the School (e.g., PIN)"
+  DegreeVerification:
+    type: "object"
+    properties:
+      record_id:
+        type: "string"
+        description: "ZippedScript Degree Verification Record Identifier"
+      country:
+        type: "string"
+        description: "2 Letter Country Code (ISO 3166-1 Format)"
+      school_id:
+        type: "string"
+        description: "ZippedScript School Code/Identifier"
+      in_progress:
+        type: "boolean"
+        description: "true = verification is still in progress, false = verification is complete"
+      success:
+        type: "boolean"
+        description: "true = verification was successful, false = verification was NOT successful, null = no data (e.g., verification in progress)"
+      name:
+        type: "string"
+        description: "Student name as it appears in the school's systems, null = no data (e.g., verification in progress)"
+      degree:
+        type: "string"
+        description: "Degree name/type as it appears in the school's systems, null = no data (e.g., verification in progress)"
+      graduated:
+        type: "string"
+        description: "Date of graduation as it appears in the school's systems, null = no data (e.g., verification in progress)"
+      entered_on:
+        type: "string"
+        description: "Date Associated With When A Verification Was Requested"
+      verified_on:
+        type: "string"
+        description: "Date Associated With When A Verification Took Place, null = no data (e.g., verification in progress)"
