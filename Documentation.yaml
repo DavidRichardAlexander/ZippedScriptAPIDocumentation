@@ -10,92 +10,24 @@ info:
 host: "zippedscriptapi.com"
 basePath: "/v1.2"
 tags:
-- name: "Basic Info"
-  description: "Endoints returning information such as available countries and schools"
-- name: "Images"
-  description: "Endoints related to images - specifically school logos"
 - name: "Account"
   description: "Endoints related to account management"
 - name: "Degree Verification"
   description: "Endoints related to verification of degrees"
-#- name: "Student Verification"
-#  description: "Endoints related to verification of student status"
+- name: "Enrolment Verification"
+  description: "Endoints related to verification of enrolment"
+- name: "Images"
+  description: "Endoints related to images - specifically school logos"
 schemes:
 - "https"
 - "http"
 paths:
-  /basic_info/countries:
-    get:
-      tags:
-      - "Basic Info"
-      summary: "Return a list of available countries"
-      description: "Endpoint returns a list of currently available countries"
-      operationId: "getcountries"
-      produces:
-      - "application/json"
-      responses:
-        "200":
-          description: "Success"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Countries"
-  /basic_info/country/{country_code}:
-    get:
-      tags:
-      - "Basic Info"
-      summary: "Return a list of available schools"
-      description: "Endpoint returns a list of available schools according to the country_code provided"
-      operationId: "getschools"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "country_code"
-        in: "path"
-        description: "2 Letter Country Code in ISO 3166-1 Format"
-        required: true
-        type: "string"
-      responses:
-        "200":
-          description: "Success"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Schools"
-        "201":
-          description: "Country not found"
-  /images/{country_code}/{school_code}:
-    get:
-      tags:
-      - "Images"
-      summary: "Return a school's logo"
-      description: "Return a logo in .png format corresponding with the country_code and school_code provided"
-      operationId: "getschoollogo"
-      produces:
-      - ".png"
-      parameters:
-      - name: "country_code"
-        in: "path"
-        description: "2 Letter Country Code in ISO 3166-1 Format"
-        required: true
-        type: "string"
-      - name: "school_code"
-        in: "path"
-        description: "ZippedScript School Code/Identifier"
-        required: true
-        type: "string"
-      responses:
-        "200":
-          description: "Success"
-          schema:
-            type: file
-            format: .png
   /account/get_access_token:
     post:
       tags:
       - "Account"
       summary: "Return a valid JWT"
-      description: "Endpoint returns a valid JWT bearer token"
+      description: "Endpoint returns a valid JWT bearer token for a respective partner"
       operationId: "getaccesstoken"
       consumes:
       - "application/json"
@@ -175,12 +107,52 @@ paths:
           description: "Missing Authorization Header -- or -- Token has expired"
       security:
       - Bearer: []
+  /degree_verification/countries:
+    get:
+      tags:
+      - "Degree Verification"
+      summary: "Return a list of available countries"
+      description: "Endpoint returns a list of currently available countries for enrolment verification"
+      operationId: "degreeverificationgetcountries"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Countries"
+  /degree_verification/country/{country_code}:
+    get:
+      tags:
+      - "Degree Verification"
+      summary: "Return a list of available schools"
+      description: "Endpoint returns a list of available schools for enrolment verification according to the country_code provided"
+      operationId: "degreeverificationgetschools"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "country_code"
+        in: "path"
+        description: "2 Letter Country Code in ISO 3166-1 Format"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Schools"
+        "201":
+          description: "Country not found"
   /degree_verification/new:
     post:
       tags:
       - "Degree Verification"
-      summary: "Validate Reset a password"
-      description: "Endpoint allows partners to reset their account password"
+      summary: "Request a new degree verification"
+      description: "Endpoint allows partners to request a new degree verification"
       operationId: "degreeverificationnew"
       consumes:
       - "application/json"
@@ -188,14 +160,24 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "country"
+        in: "query"
+        description: "2 letter country code (ISO 3166-1 format)"
+        required: true
+        type: "string"
+      - name: "school"
+        in: "query"
+        description: "ZippedScript school code/identifier"
+        required: true
+        type: "string"
       - name: "username"
         in: "query"
-        description: "The user name for login"
+        description: "The student username as defined by the school"
         required: true
         type: "string"
       - name: "password"
         in: "query"
-        description: "The password for login in clear text"
+        description: "The student password for login in clear text"
         required: true
         type: "string"
       responses:
@@ -206,7 +188,10 @@ paths:
             properties:
               record_id:
                 type: string
-                description: "ZippedScript Degree Verification Record Identifier"
+                description: "ZippedScript degree verification record identifier"
+              two_factor:
+                type: boolean
+                description: "If a two-factor authentication code is required"
         "201":
           description: "Request must be of type 'multipart/form-data' or 'application/json' -- or -- Missing parameters -- or -- Not a valid country code -- or -- Not a valid school code"
         "401":
@@ -215,12 +200,52 @@ paths:
           description: "Could not connect to database"
       security:
       - Bearer: []
+  /degree_verification/two_factor:
+    post:
+      tags:
+      - "Degree Verification"
+      summary: "Submit a 2-fa code for a verification"
+      description: "Endpoint allows for the submission of a f-fa code related to a specific record_id"
+      operationId: "degreeverificationtwofactor"
+      consumes:
+      - "application/json"
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "record_id"
+        in: "query"
+        description: "ZippedScript degree verification record identifier"
+        required: true
+        type: "string"
+      - name: "code"
+        in: "query"
+        description: "Two factor code associated with the given record_id"
+        required: true
+        type: "string"
+      responses:
+        '200':
+          description: "Success"
+          schema:
+            type: object
+            properties:
+              record_id:
+                type: string
+                description: "ZippedScript degree verification record identifier"
+        "201":
+          description: "Request must be of type 'multipart/form-data' or 'application/json' -- or -- Missing parameters -- or -- Not a valid country code -- or -- Not a valid school code"
+        "401":
+          description: "Bad code entered"
+        "503":
+          description: "Could not connect to database"
+      security:
+      - Bearer: []
   /degree_verification/result:
     post:
       tags:
       - "Degree Verification"
-      summary: "Validate Reset a password"
-      description: "Endpoint allows partners to reset their account password"
+      summary: "Request the results of a degree verification"
+      description: "Endpoint allows partners to request both the status (e.g., in progress/completed) as well as the results of a degree verification"
       operationId: "degreeverificationresult"
       consumes:
       - "application/json"
@@ -244,7 +269,169 @@ paths:
           description: "Could not connect to database"
       security:
       - Bearer: []
+  /enrolment_verification/countries:
+    get:
+      tags:
+      - "Enrolment Verification"
+      summary: "Return a list of available countries"
+      description: "Endpoint returns a list of currently available countries for enrolment verification"
+      operationId: "enrolmentverificationgetcountries"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Countries"
+  /enrolment_verification/country/{country_code}:
+    get:
+      tags:
+      - "Enrolment Verification"
+      summary: "Return a list of available schools for enrolment verification"
+      description: "Endpoint returns a list of available schools for enrolment verification according to the country_code provided"
+      operationId: "enrolmentverificationgetschools"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "country_code"
+        in: "path"
+        description: "2 Letter Country Code in ISO 3166-1 Format"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Schools"
+        "201":
+          description: "Country not found"
+  /enrolment_verification/new:
+    post:
+      tags:
+      - "Enrolment Verification"
+      summary: "Request a new degree verification"
+      description: "Endpoint allows partners to request a new enrolment verification"
+      operationId: "enrolmentverificationnew"
+      consumes:
+      - "application/json"
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "country"
+        in: "query"
+        description: "2 letter country code (ISO 3166-1 format)"
+        required: true
+        type: "string"
+      - name: "school"
+        in: "query"
+        description: "ZippedScript school code/identifier"
+        required: true
+        type: "string"
+      - name: "username"
+        in: "query"
+        description: "The student username as defined by the school"
+        required: true
+        type: "string"
+      - name: "password"
+        in: "query"
+        description: "The student password for login in clear text"
+        required: true
+        type: "string"
+      responses:
+        '200':
+          description: "Success"
+          schema:
+            type: object
+            properties:
+              record_id:
+                type: string
+                description: "ZippedScript degree verification record identifier"
+        "201":
+          description: "Request must be of type 'multipart/form-data' or 'application/json' -- or -- Missing parameters -- or -- Not a valid country code -- or -- Not a valid school code"
+        "401":
+          description: "Bad username or password"
+        "503":
+          description: "Could not connect to database"
+      security:
+      - Bearer: []
+  /enrolment_verification/result:
+    post:
+      tags:
+      - "Enrolment Verification"
+      summary: "Request the results of an enrolment verification"
+      description: "Endpoint allows partners to request both the status (e.g., in progress/completed) as well as the results of an enrolment verification"
+      operationId: "enrolmentverificationresult"
+      consumes:
+      - "application/json"
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "record_id"
+        in: "query"
+        description: "The record_id associated with the verification result"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/EnrolmentVerification"
+        "201":
+          description: "Request must be of type 'multipart/form-data' or 'application/json' -- or -- Missing parameters"
+        "503":
+          description: "Could not connect to database"
+      security:
+      - Bearer: []
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /images/{country_code}/{school_code}:
+    get:
+      tags:
+      - "Images"
+      summary: "Return a school's logo"
+      description: "Return a logo in .png format corresponding with the country_code and school_code provided"
+      operationId: "getschoollogo"
+      produces:
+      - ".png"
+      parameters:
+      - name: "country_code"
+        in: "path"
+        description: "2 Letter Country Code in ISO 3166-1 Format"
+        required: true
+        type: "string"
+      - name: "school_code"
+        in: "path"
+        description: "ZippedScript School Code/Identifier"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            type: file
+            format: .png
 securityDefinitions:
   Bearer:
     type: apiKey
@@ -266,7 +453,7 @@ definitions:
     properties:
       Code:
         type: "string"
-        description: "2 Letter Country Code (ISO 3166-1 Format)"
+        description: "2 letter country code (ISO 3166-1 format)"
       Name:
         type: "string"
         description: "Country Name"
@@ -275,31 +462,31 @@ definitions:
     properties:
       Code:
         type: "string"
-        description: "ZippedScript School Code/Identifier"
+        description: "ZippedScript school code/identifier"
       Name:
         type: "string"
-        description: "School Name"
+        description: "School name"
       System:
         type: "string"
-        description: "Name of the School's Validation System"
+        description: "Name of the school's validation system"
       U:
         type: "string"
-        description: "Username Descriptor Used by the School (e.g., MyUniversityID)"
+        description: "Username descriptor used by the school (e.g., MyUniversityID)"
       P:
         type: "string"
-        description: "Password Descriptor Used by the School (e.g., PIN)"
+        description: "Password descriptor used by the school (e.g., PIN)"
   DegreeVerification:
     type: "object"
     properties:
       record_id:
         type: "string"
-        description: "ZippedScript Degree Verification Record Identifier"
+        description: "ZippedScript record_id associated with the verification"
       country:
         type: "string"
-        description: "2 Letter Country Code (ISO 3166-1 Format)"
+        description: "2 letter country code (ISO 3166-1 format)"
       school_id:
         type: "string"
-        description: "ZippedScript School Code/Identifier"
+        description: "ZippedScript school code/identifier"
       in_progress:
         type: "boolean"
         description: "true = verification is still in progress, false = verification is complete"
@@ -317,7 +504,31 @@ definitions:
         description: "Date of graduation as it appears in the school's systems, null = no data (e.g., verification in progress)"
       entered_on:
         type: "string"
-        description: "Date Associated With When A Verification Was Requested"
+        description: "Date associated with when a verification was requested"
       verified_on:
         type: "string"
-        description: "Date Associated With When A Verification Took Place, null = no data (e.g., verification in progress)"
+        description: "Date associated with when a verification took place, null = no data (e.g., verification in progress)"
+  EnrolmentVerification:
+    type: "object"
+    properties:
+      record_id:
+        type: "string"
+        description: "ZippedScript record_id associated with the verification"
+      country:
+        type: "string"
+        description: "2 letter country code (ISO 3166-1 format)"
+      school_id:
+        type: "string"
+        description: "ZippedScript school code/identifier"
+      in_progress:
+        type: "boolean"
+        description: "true = verification is still in progress, false = verification is complete"
+      success:
+        type: "boolean"
+        description: "true = verification was successful, false = verification was NOT successful, null = no data (e.g., verification in progress)"
+      entered_on:
+        type: "string"
+        description: "Date associated with when a verification was requested"
+      verified_on:
+        type: "string"
+        description: "Date associated with when a verification took place, null = no data (e.g., verification in progress)"
