@@ -313,7 +313,7 @@ paths:
     post:
       tags:
       - "Enrolment Verification"
-      summary: "Request a new degree verification"
+      summary: "Request a new enrolment verification"
       description: "Endpoint allows partners to request a new enrolment verification"
       operationId: "enrolmentverificationnew"
       consumes:
