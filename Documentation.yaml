@@ -388,24 +388,6 @@ paths:
           description: "Could not connect to database"
       security:
       - Bearer: []
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   /images/{country_code}/{school_code}:
     get:
       tags:
