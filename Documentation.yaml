@@ -79,7 +79,12 @@ paths:
         type: "string"
       - name: "password"
         in: "query"
-        description: "The password for login in clear text"
+        description: "The old password for login in clear text"
+        required: true
+        type: "string"
+      - name: "new_password"
+        in: "query"
+        description: "The new password for login in clear text"
         required: true
         type: "string"
       responses:
