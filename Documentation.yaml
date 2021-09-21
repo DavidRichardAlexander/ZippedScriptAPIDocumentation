@@ -3,7 +3,6 @@ info:
   description: "This is documentation to accompany the ZippedScript education and enrolment verification API.  You can find out more about ZippedScript and our services by visiting [https://zippedscript.com](https://zippedscript.com)."
   version: "V1.2"
   title: "ZippedScript API"
-  termsOfService: "http://swagger.io/terms/"
   contact:
     email: "info@zippedscript.com"
 #host: "127.0.0.1:5000"
