@@ -3,8 +3,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>ZippedScript API Documentation</title>
+    <title>Swagger UI</title>
     <link rel="stylesheet" type="text/css" href="dist/swagger-ui.css" />
+    <link rel="icon" type="image/png" href="dist/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="dist/favicon-16x16.png" sizes="16x16" />
     <style>
       html
       {
@@ -37,12 +39,17 @@
     window.onload = function() {
       // Begin Swagger UI call region
       const ui = SwaggerUIBundle({
-        url: "Documentation.yaml",
+        url: "swagger.yaml",
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [
-          SwaggerUIBundle.presets.apis
-        ]
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout"
       });
       // End Swagger UI call region
 
