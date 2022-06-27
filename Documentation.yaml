@@ -3,8 +3,7 @@ info:
   description: "This is documentation to accompany the ZippedScript education and enrolment verification API.  You can find out more about ZippedScript and our services by visiting [https://zippedscript.com](https://zippedscript.com)."
   version: "V1.2.1"
   title: "ZippedScript API"
-  contact:s
-    email: "info@zippedscript.com"
+  email: "info@zippedscript.com"
 #host: "127.0.0.1:5000"
 host: "zippedscriptapi.com"
 basePath: "/v1.2.1"
