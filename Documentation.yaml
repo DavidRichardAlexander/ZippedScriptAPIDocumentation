@@ -1,13 +1,13 @@
 swagger: "2.0"
 info:
   description: "This is documentation to accompany the ZippedScript education and enrolment verification API.  You can find out more about ZippedScript and our services by visiting [https://zippedscript.com](https://zippedscript.com)."
-  version: "V1.2"
+  version: "V1.2.1s"
   title: "ZippedScript API"
-  contact:
+  contact:s
     email: "info@zippedscript.com"
 #host: "127.0.0.1:5000"
 host: "zippedscriptapi.com"
-basePath: "/v1.2"
+basePath: "/v1.2.1"
 tags:
 - name: "Account"
   description: "Endpoints related to account management"
@@ -461,6 +461,9 @@ definitions:
       P:
         type: "string"
         description: "Password descriptor used by the school (e.g., PIN)"
+      ForgotPassword:
+        type: "string"
+        description: "The URL which users can use to reset their school credentials"
   DegreeVerification:
     type: "object"
     properties:
@@ -485,6 +488,12 @@ definitions:
       degree:
         type: "string"
         description: "Degree name/type as it appears in the school's systems, null = no data (e.g., verification in progress)"
+      major:
+        type: "string"
+        description: "Degree major as it appears in the school's systems, null = no data (e.g., no major listed)"
+      minor:
+        type: "string"
+        description: "Degree minor as it appears in the school's systems, null = no data (e.g., no minor listed)"
       graduated:
         type: "string"
         description: "Date of graduation as it appears in the school's systems, null = no data (e.g., verification in progress)"
